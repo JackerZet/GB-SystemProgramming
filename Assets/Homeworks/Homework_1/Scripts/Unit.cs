@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Homeworks.homework_1 
 { 
 
-    public class Unit : MonoBehaviour
+    internal class Unit : MonoBehaviour
     {
         [SerializeField] private int _maxHealth = 100;
         [SerializeField] private int _health;

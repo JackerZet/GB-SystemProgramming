@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Homeworks.homework_1
 {
-    public class TasksTest : MonoBehaviour
+    internal class TasksTest : MonoBehaviour
     {
         private void Start()
         {
