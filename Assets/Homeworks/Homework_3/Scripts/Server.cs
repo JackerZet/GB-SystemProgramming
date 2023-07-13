@@ -18,14 +18,12 @@ namespace Homeworks.homework_3
 
         List<int> connectionIDs = new List<int>();
 
-        Dictionary<int, string> playersNames = new Dictionary<int, string>();
+        Dictionary<int, string> players = new Dictionary<int, string>();
 
         public void StartServer()
         {
             NetworkTransport.Init();
             ConnectionConfig cc = new ConnectionConfig();
-            cc.ConnectTimeout = 100;
-            //cc.DisconnectTimeout = 100;
             reliableChannel = cc.AddChannel(QosType.Reliable);
             HostTopology topology = new HostTopology(cc, MAX_CONNECTION);
             hostID = NetworkTransport.AddHost(topology, port);
@@ -60,21 +58,25 @@ namespace Homeworks.homework_3
                     case NetworkEventType.ConnectEvent:
                         connectionIDs.Add(connectionId);
                         AddNewPlayer(connectionId);
-                        SendMessageToAll($"{playersNames[connectionId]} has connected.");
-                        Debug.Log($"{playersNames[connectionId]} has connected.");
+                        SendToChatAndConsole($"{players[connectionId]} has connected.");
                         break;
                     case NetworkEventType.DataEvent:
                         string message = Encoding.Unicode.GetString(recBuffer, 0, dataSize);
-                        SendMessageToAll($"{playersNames[connectionId]}: {message}");
-                        Debug.Log($"{playersNames[connectionId]}: {message}");
-                        if (playersNames[connectionId] == DEFAULT_NAME + connectionId)
-                            RenamePlayer(connectionId, message);
+
+                        if (IsRenaming(message))
+                        {
+                            string name = MessageIDs.CommandToMessage(message, MessageIDs.RENAMING_COMMAND);
+                            
+                            RenamePlayer(connectionId, name);
+                            SendMessage($"Your name is {name}", connectionId);
+                            break;
+                        }
+                        SendToChatAndConsole($"{players[connectionId]}: {message}");                      
                         break;
                     case NetworkEventType.DisconnectEvent:
                         connectionIDs.Remove(connectionId);
+                        SendToChatAndConsole($"{players[connectionId]} has disconnected.");                 
                         RemovePlayer(connectionId);
-                        SendMessageToAll($"{playersNames[connectionId]} has disconnected.");
-                        Debug.Log($"{playersNames[connectionId]} has disconnected.");
                         break;
                     case NetworkEventType.BroadcastEvent:
                         break;
@@ -83,6 +85,13 @@ namespace Homeworks.homework_3
                 bufferSize, out dataSize, out error);
             }               
         }
+
+        private void SendToChatAndConsole(string message)
+        {
+            SendMessageToAll(message);
+            Debug.Log(message);
+        }
+
         public void SendMessageToAll(string message)
         {
             for (int i = 0; i < connectionIDs.Count; i++)
@@ -98,19 +107,21 @@ namespace Homeworks.homework_3
             if ((NetworkError)error != NetworkError.Ok) Debug.Log((NetworkError)error);
         }
 
-        private void AddNewPlayer(int connectionId)
+        private bool IsRenaming(string message)
         {
-            playersNames.Add(connectionId, DEFAULT_NAME + connectionId);
+            for(int i = 0;i < MessageIDs.RENAMING_COMMAND.Length ;i++) 
+            {
+                if (message[i] == MessageIDs.RENAMING_COMMAND[i])
+                    continue;
+                return false;
+            }
+            return true;
         }
 
-        private void RemovePlayer(int connectionId)
-        {
-            playersNames.Remove(connectionId);
-        }
+        private void AddNewPlayer(int connectionId) => players.Add(connectionId, DEFAULT_NAME + connectionId);
 
-        private void RenamePlayer(int connectionId, string newName)
-        {
-            playersNames[connectionId] = newName;
-        }
+        private void RemovePlayer(int connectionId) => players.Remove(connectionId);
+
+        private void RenamePlayer(int connectionId, string newName) => players[connectionId] = newName;
     }
 }       

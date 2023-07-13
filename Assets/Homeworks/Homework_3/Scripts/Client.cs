@@ -18,28 +18,29 @@ namespace Homeworks.homework_3
         private int connectionID = -1;
 
         private bool isConnected = false;
+
+        public string inputName = string.Empty;
         public void Connect()
         {
             if (isConnected) return;
           
             NetworkTransport.Init();
             ConnectionConfig cc = new ConnectionConfig();
-            cc.ConnectTimeout = 100;
-            //cc.DisconnectTimeout = 100;
+            
             reliableChannel = cc.AddChannel(QosType.Reliable);
             HostTopology topology = new HostTopology(cc, MAX_CONNECTION);
             hostID = NetworkTransport.AddHost(topology, port);        
             connectionID = NetworkTransport.Connect(hostID, "127.0.0.1", serverPort, 0, out error);
-
-            if ((NetworkError)error == NetworkError.Ok)
+            if ((NetworkError)error == NetworkError.Ok)            
                 isConnected = true;
-            else
-                Debug.Log((NetworkError)error);
+            else           
+                Debug.Log((NetworkError)error);            
         }
         public void Disconnect()
         {
             if (!isConnected) return;
             NetworkTransport.Disconnect(hostID, connectionID, out error);
+            
             isConnected = false;
         }
         void Update()
@@ -53,26 +54,29 @@ namespace Homeworks.homework_3
             int dataSize;
             NetworkEventType recData = NetworkTransport.Receive(out recHostId, out connectionId, out
             channelId, recBuffer, bufferSize, out dataSize, out error);
+
             while (recData != NetworkEventType.Nothing)
             {
                 switch (recData)
                 {
                     case NetworkEventType.Nothing:
                         break;
+
                     case NetworkEventType.ConnectEvent:
-                        onMessageReceive?.Invoke($"You have been connected to server.");
-                        Debug.Log($"You have been connected to server.");
+                        SendToChatAndConsole($"You have been connected to server.");
                         break;
+
                     case NetworkEventType.DataEvent:
-                        string message = Encoding.Unicode.GetString(recBuffer, 0, dataSize);
-                        onMessageReceive?.Invoke(message);
-                        Debug.Log(message);
+                        string message = Encoding.Unicode.GetString(recBuffer, 0, dataSize);                       
+                        SendToChatAndConsole(message);                        
                         break;
+
                     case NetworkEventType.DisconnectEvent:
-                        isConnected = false;
-                        onMessageReceive?.Invoke($"You have been disconnected from server.");
-                        Debug.Log($"You have been disconnected from server.");
+                        if(this.connectionID != connectionId)
+                            isConnected = false;  // Thunderstorm of all troubles
+                        SendToChatAndConsole($"You have been disconnected from server.");                      
                         break;
+
                     case NetworkEventType.BroadcastEvent:
                         break;
                 }
@@ -80,11 +84,30 @@ namespace Homeworks.homework_3
                 bufferSize, out dataSize, out error);
             }
         }
+
+        
         public void SendMessage(string message)
         {
+            SendToServer(message);
+        }
+
+        public void SendName(string name) 
+        {           
+            SendToServer(MessageIDs.MessageToCommand(name, MessageIDs.RENAMING_COMMAND));
+        }
+
+        private void SendToServer(string message)
+        {
+            if(!isConnected) { return; }
             byte[] buffer = Encoding.Unicode.GetBytes(message);
             NetworkTransport.Send(hostID, connectionID, reliableChannel, buffer, message.Length * sizeof(char), out error);
             if ((NetworkError)error != NetworkError.Ok) Debug.Log((NetworkError)error);
+        }
+
+        private void SendToChatAndConsole(string message)
+        {
+            onMessageReceive?.Invoke(message);
+            Debug.Log(message);
         }
     }
 }

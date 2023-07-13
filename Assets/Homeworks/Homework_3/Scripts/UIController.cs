@@ -18,7 +18,11 @@ namespace Homeworks.homework_3
         [SerializeField]
         private Button buttonSendMessage;
         [SerializeField]
-        private TMP_InputField inputField;
+        private Button buttonSendName;
+        [SerializeField]
+        private TMP_InputField inputMessageField;
+        [SerializeField]
+        private TMP_InputField inputNameField;
         [SerializeField]
         private TextField textField;
         [SerializeField]
@@ -32,6 +36,7 @@ namespace Homeworks.homework_3
             buttonConnectClient.onClick.AddListener(() => Connect());
             buttonDisconnectClient.onClick.AddListener(() => Disconnect());
             buttonSendMessage.onClick.AddListener(() => SendMessage());
+            buttonSendName.onClick.AddListener(() => SendName());
             client.onMessageReceive += ReceiveMessage;
         }
         private void OnDestroy()
@@ -61,8 +66,12 @@ namespace Homeworks.homework_3
         }
         private void SendMessage()
         {
-            client.SendMessage(inputField.text);
-            inputField.text = "";
+            client.SendMessage(inputMessageField.text);
+            inputMessageField.text = "";
+        }
+        private void SendName()
+        {
+            client.SendName(inputNameField.text);
         }
         public void ReceiveMessage(object message)
         {
