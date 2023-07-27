@@ -9,6 +9,12 @@ EditorBuildSettings:
     path: Assets/Homeworks/Homework_1/Scenes/Homework1.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   - enabled: 1
-    path: Assets/Homeworks/Homework_3/Scenes/Homework3.unity
-    guid: 288c7aaba32e6414a82b3bcd9748edc9
+    path: Assets/Homeworks/Homework_4/Scenes/StartScene.unity
+    guid: 600cb2e5ac541bc49b3d724c64a18e23
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: Assets/Homeworks/Homework_4/Scenes/OtherScene.unity
+    guid: dfaba9787d942084a975d4fcc7213ab1
   m_configObjects: {}
